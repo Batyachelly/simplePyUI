@@ -1,11 +1,17 @@
 import abc
 import ctypes
+import enum
 
 import sdl2
 import sdl2.ext
 import sdl2.sdlttf
 
 from . import abstarct_classes
+
+class TEXT_ALIGN(enum.IntEnum):
+    LEFT = 0
+    CENTER = 1
+    RIGHT = 2
 
 class Render:
 
@@ -131,16 +137,23 @@ class UIText(UINode):
     """kwargs = {
         "text" : str()
         "color": (r, g, b, a)
+        "text_align": TEXT_ALIGN
     }"""
     text = str()
     color = tuple()
+    text_align = TEXT_ALIGN.LEFT
 
     clickable = False
 
     def create_sprites(self, render: Render, pos_off=(0, 0)):
 
-        text = render.font_manager.render(self.text)
+
+        text = render.font_manager.render(self.text, color=self.color)
         sprite = render.sprite_factory.from_surface(text)
+
+        if self.text_align == TEXT_ALIGN.CENTER:
+            pos_off = ( pos_off[0] + self.size[0] // 2 - text.w // 2, pos_off[1])
+
         sprite.position = pos_off
         return [sprite]
 
