@@ -9,9 +9,12 @@ import sdl2.sdlttf
 from . import abstarct_classes
 
 class TEXT_ALIGN(enum.IntEnum):
-    LEFT = 0
-    CENTER = 1
-    RIGHT = 2
+    LEFT = 1
+    HCENTER = 2
+    RIGHT = 4
+    TOP = 8
+    BOTTOM = 16
+    VCENTER = 32
 
 class Render:
 
@@ -151,9 +154,15 @@ class UIText(UINode):
         text = render.font_manager.render(self.text, color=self.color)
         sprite = render.sprite_factory.from_surface(text)
 
-        if self.text_align == TEXT_ALIGN.CENTER:
+        if self.text_align & TEXT_ALIGN.HCENTER:
             pos_off = ( pos_off[0] + self.size[0] // 2 - text.w // 2, pos_off[1])
-
+        if self.text_align & TEXT_ALIGN.VCENTER:
+            pos_off = ( pos_off[0], pos_off[1] + self.size[1] // 2 - text.h // 2)
+        if self.text_align & TEXT_ALIGN.RIGHT:
+            pos_off = ( pos_off[0] + self.size[0] - text.w, pos_off[1])
+        if self.text_align & TEXT_ALIGN.BOTTOM:
+            pos_off = ( pos_off[0], pos_off[1] + self.size[1] - text.h)
+            pass
         sprite.position = pos_off
         return [sprite]
 

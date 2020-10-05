@@ -26,6 +26,7 @@ class UIWidgetsFactory:
         color_click = tuple()
         click_event = callable
         status = Status.NONE
+        text_align = TEXT_ALIGN.VCENTER | TEXT_ALIGN.HCENTER
 
         def __init__(self, pos, size, nodes,  **kwargs):
             super().__init__(pos, size, nodes, **kwargs)
@@ -33,7 +34,7 @@ class UIWidgetsFactory:
             panel: UIPanel = self.ui_factory.Panel(
                 (0, 0), self.size, [], color=self.color)
             text: UIText = self.ui_factory.Text((0, 0), self.size, [
-            ], color=self.color_text, text=self.text, text_align=TEXT_ALIGN.CENTER)
+            ], color=self.color_text, text=self.text, text_align=self.text_align)
 
             def click():
                 self.click_event()
@@ -57,6 +58,7 @@ class UIWidgetsFactory:
     def button(self, pos, size, nodes=None, **kwargs):
         """kwargs = {
             "text" : str()
+            "color_text": (r, g, b, a)
             "color": (r, g, b, a)
             "color_hover": (r, g, b, a)
             "color_click": (r, g, b, a)
