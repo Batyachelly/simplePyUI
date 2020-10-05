@@ -34,8 +34,11 @@ class Render:
         self.start_ui_node.get_sprites(self, (0, 0))
         self.sprite_renderer.render(self.sprites_to_render)
 
-    def click(self, pos_click):
-        self.start_ui_node.handle_mouse_event(pos_click, (0, 0), "click_event")
+    def mouse_down(self, pos_click):
+        self.start_ui_node.handle_mouse_event(pos_click, (0, 0), "mouse_down")
+
+    def mouse_up(self, pos_click):
+        self.start_ui_node.handle_mouse_event(pos_click, (0, 0), "mouse_up")
 
     def hover(self, pos_mouse):
         nodes_with = list()
@@ -90,8 +93,7 @@ class UINode(metaclass=abc.ABCMeta):
                 pos_mouse[0] < pos_off[0] + self.size[0] and \
                 pos_off[1] < pos_mouse[1] and \
                 pos_mouse[1] < pos_off[1] + self.size[1]:
-            has_event = hasattr(self, event)
-            if has_event:  # ! СДЕЛАЙ КРАСИВО
+            if  hasattr(self, event):
                 getattr(self, event)()
             return True
         return False
@@ -199,6 +201,10 @@ class SimpleUI:
         self.running = True
 
     def run_loop(self):
+
+        # Mouse ccords variables
+        x, y = ctypes.c_int(0), ctypes.c_int(0)
+
         while self.running:
             self.render.draw()
             events = sdl2.ext.get_events()
@@ -207,10 +213,14 @@ class SimpleUI:
                     self.running = False
                     break
                 if event.type == sdl2.SDL_MOUSEBUTTONDOWN:
-                    x, y = ctypes.c_int(0), ctypes.c_int(0)
                     sdl2.mouse.SDL_GetMouseState(
                         ctypes.byref(x), ctypes.byref(y))
-                    self.render.click((x.value, y.value))
+                    self.render.mouse_down((x.value, y.value))
+                    break
+                if event.type == sdl2.SDL_MOUSEBUTTONUP:
+                    sdl2.mouse.SDL_GetMouseState(
+                        ctypes.byref(x), ctypes.byref(y))
+                    self.render.mouse_up((x.value, y.value))
                     break
                 if event.type == sdl2.SDL_MOUSEMOTION:
                     x, y = ctypes.c_int(0), ctypes.c_int(0)

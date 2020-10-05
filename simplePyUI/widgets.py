@@ -4,11 +4,11 @@ from .main import UINode, UIPanel, UIText, Render, TEXT_ALIGN
 from .abstarct_classes import AbstarctUIFactory
 
 
-class Status(enum.IntEnum):
+class STATE(enum.IntEnum):
     NONE = 0
     HOVER = 1
     PRESS = 2
-    CHECK = 3
+    CHECK = 4
 
 
 class UIWidgetsFactory:
@@ -23,9 +23,11 @@ class UIWidgetsFactory:
         color_text = tuple()
         color = tuple()
         color_hover = tuple()
-        color_click = tuple()
+        color_press = tuple()
         click_event = callable
-        status = Status.NONE
+        mouse_up = callable
+        mouse_down = callable
+        status = STATE.NONE
         text_align = TEXT_ALIGN.VCENTER | TEXT_ALIGN.HCENTER
 
         def __init__(self, pos, size, nodes,  **kwargs):
@@ -36,14 +38,30 @@ class UIWidgetsFactory:
             text: UIText = self.ui_factory.Text((0, 0), self.size, [
             ], color=self.color_text, text=self.text, text_align=self.text_align)
 
+
+            def mouse_down():
+                self.status = self.status | STATE.PRESS
+                panel.color = self.color_press
+                self.click_event()
+
+            def mouse_up():
+                self.status = self.status & ~ STATE.PRESS
+                panel.color = self.color_hover
+                # self.click_event()
+
+            panel.mouse_down = mouse_down
+            panel.mouse_up = mouse_up
+
             def click():
                 self.click_event()
             panel.click_event = click
 
             def mouse_in():
-                panel.color = self.color_hover
+                if not self.status & STATE.PRESS:
+                    panel.color = self.color_hover
 
             def mouse_out():
+                self.status = self.status & ~ STATE.PRESS
                 panel.color = self.color
             panel.hover = (mouse_in, mouse_out)
 
