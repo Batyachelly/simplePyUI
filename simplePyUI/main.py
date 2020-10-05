@@ -8,6 +8,7 @@ import sdl2.sdlttf
 
 from . import abstarct_classes
 
+
 class TEXT_ALIGN(enum.IntEnum):
     LEFT = 1
     HCENTER = 2
@@ -15,6 +16,7 @@ class TEXT_ALIGN(enum.IntEnum):
     TOP = 8
     BOTTOM = 16
     VCENTER = 32
+
 
 class Render:
 
@@ -29,7 +31,6 @@ class Render:
         self.font_manager = sdl2.ext.FontManager(font_path)
 
     def draw(self):
-
         self.sprites_to_render = list()
         self.start_ui_node.get_sprites(self, (0, 0))
         self.sprite_renderer.render(self.sprites_to_render)
@@ -67,11 +68,8 @@ class UINode(metaclass=abc.ABCMeta):
             setattr(self, key, val)
 
     def get_sprites(self, render: Render, pos_off):
-
         pos_off = (self.pos[0] + pos_off[0], self.pos[1] + pos_off[1])
-
         render.sprites_to_render.extend(self.create_sprites(render, pos_off))
-
         for node in self.nodes:
             node.get_sprites(render, pos_off)
 
@@ -93,7 +91,7 @@ class UINode(metaclass=abc.ABCMeta):
                 pos_mouse[0] < pos_off[0] + self.size[0] and \
                 pos_off[1] < pos_mouse[1] and \
                 pos_mouse[1] < pos_off[1] + self.size[1]:
-            if  hasattr(self, event):
+            if hasattr(self, event):
                 getattr(self, event)()
             return True
         return False
@@ -151,19 +149,19 @@ class UIText(UINode):
     clickable = False
 
     def create_sprites(self, render: Render, pos_off=(0, 0)):
-
-
         text = render.font_manager.render(self.text, color=self.color)
         sprite = render.sprite_factory.from_surface(text)
 
         if self.text_align & TEXT_ALIGN.HCENTER:
-            pos_off = ( pos_off[0] + self.size[0] // 2 - text.w // 2, pos_off[1])
+            pos_off = (pos_off[0] + self.size[0] //
+                       2 - text.w // 2, pos_off[1])
         if self.text_align & TEXT_ALIGN.VCENTER:
-            pos_off = ( pos_off[0], pos_off[1] + self.size[1] // 2 - text.h // 2)
+            pos_off = (pos_off[0], pos_off[1] +
+                       self.size[1] // 2 - text.h // 2)
         if self.text_align & TEXT_ALIGN.RIGHT:
-            pos_off = ( pos_off[0] + self.size[0] - text.w, pos_off[1])
+            pos_off = (pos_off[0] + self.size[0] - text.w, pos_off[1])
         if self.text_align & TEXT_ALIGN.BOTTOM:
-            pos_off = ( pos_off[0], pos_off[1] + self.size[1] - text.h)
+            pos_off = (pos_off[0], pos_off[1] + self.size[1] - text.h)
             pass
         sprite.position = pos_off
         return [sprite]
@@ -201,7 +199,6 @@ class SimpleUI:
         self.running = True
 
     def run_loop(self):
-
         # Mouse ccords variables
         x, y = ctypes.c_int(0), ctypes.c_int(0)
 

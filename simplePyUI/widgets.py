@@ -38,7 +38,6 @@ class UIWidgetsFactory:
             text: UIText = self.ui_factory.Text((0, 0), self.size, [
             ], color=self.color_text, text=self.text, text_align=self.text_align)
 
-
             def mouse_down():
                 self.status = self.status | STATE.PRESS
                 panel.color = self.color_press
@@ -79,7 +78,7 @@ class UIWidgetsFactory:
             "color_text": (r, g, b, a)
             "color": (r, g, b, a)
             "color_hover": (r, g, b, a)
-            "color_click": (r, g, b, a)
+            "color_press": (r, g, b, a)
             "click_event" : fun()
         }"""
         return self.Button(pos, size, None, ui_factory=self.ui_factory, **kwargs)
