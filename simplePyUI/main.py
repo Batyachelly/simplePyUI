@@ -9,7 +9,7 @@ import sdl2.sdlttf
 from . import abstarct_classes
 
 
-class TEXT_ALIGN(enum.IntEnum):
+class ALIGN(enum.IntEnum):
     LEFT = 1
     HCENTER = 2
     RIGHT = 4
@@ -55,6 +55,7 @@ class Render:
 class UINode(metaclass=abc.ABCMeta):
 
     clickable = True  # Перехватывать события мыши
+    align = ALIGN.LEFT | ALIGN.TOP
 
     def __init__(self, pos, size, nodes=None, **kwargs):
         self.pos = pos
@@ -67,10 +68,29 @@ class UINode(metaclass=abc.ABCMeta):
         for key, val in kwargs.items():
             setattr(self, key, val)
 
+    def calc_pos(self, pos_off):
+        return (self.pos[0] + pos_off[0], self.pos[1] + pos_off[1])
+
+    def calc_next_node_pos(self, next_node, pos_off):
+
+        if next_node.align & ALIGN.HCENTER:
+            pos_off = (pos_off[0] + self.size[0] //
+                       2 - next_node.size[0] // 2, pos_off[1])
+        if next_node.align & ALIGN.VCENTER:
+            pos_off = (pos_off[0], pos_off[1] +
+                       self.size[1] // 2 - next_node.size[1] // 2)
+        if next_node.align & ALIGN.RIGHT:
+            pos_off = (pos_off[0] + self.size[0] - next_node.size[0], pos_off[1])
+        if next_node.align & ALIGN.BOTTOM:
+            pos_off = (pos_off[0], pos_off[1] + self.size[1] - next_node.size[1])
+
+        return pos_off
+
     def get_sprites(self, render: Render, pos_off):
-        pos_off = (self.pos[0] + pos_off[0], self.pos[1] + pos_off[1])
+        pos_off = self.calc_pos(pos_off)
         render.sprites_to_render.extend(self.create_sprites(render, pos_off))
         for node in self.nodes:
+            pos_off = self.calc_next_node_pos(node, pos_off)
             node.get_sprites(render, pos_off)
 
     @abc.abstractmethod
@@ -78,12 +98,12 @@ class UINode(metaclass=abc.ABCMeta):
         pass
 
     def handle_mouse_event(self, pos_mouse, pos_off, event):
-        pos_off = (self.pos[0] + pos_off[0], self.pos[1] + pos_off[1])
-
         if not self.clickable:
             return False
 
+        pos_off = self.calc_pos(pos_off)
         for node in reversed(self.nodes):
+            pos_off = self.calc_next_node_pos(node, pos_off)
             if node.handle_mouse_event(pos_mouse, pos_off, event):
                 return True
 
@@ -104,12 +124,12 @@ class UINode(metaclass=abc.ABCMeta):
             node.get_nodes_with(nodes_acc, event)
 
     def get_hovered_node(self, pos_mouse, pos_off):
-        pos_off = (self.pos[0] + pos_off[0], self.pos[1] + pos_off[1])
-
         if not self.clickable:
             return None
 
+        pos_off = self.calc_pos(pos_off)
         for node in reversed(self.nodes):
+            pos_off = self.calc_next_node_pos(node, pos_off)
             hovered_node = node.get_hovered_node(pos_mouse, pos_off)
             if hovered_node:
                 return hovered_node
@@ -142,11 +162,11 @@ class UIText(UINode):
         "id": str()
         "text" : str()
         "color": (r, g, b, a)
-        "text_align": TEXT_ALIGN
+        "text_align": ALIGN
     }"""
     text = str()
     color = tuple()
-    text_align = TEXT_ALIGN.LEFT
+    text_align = ALIGN.VCENTER | ALIGN.HCENTER
 
     clickable = False
 
@@ -154,22 +174,24 @@ class UIText(UINode):
         text = render.font_manager.render(self.text, color=self.color)
         sprite = render.sprite_factory.from_surface(text)
 
-        if self.text_align & TEXT_ALIGN.HCENTER:
+        if self.text_align & ALIGN.HCENTER:
             pos_off = (pos_off[0] + self.size[0] //
                        2 - text.w // 2, pos_off[1])
-        if self.text_align & TEXT_ALIGN.VCENTER:
+        if self.text_align & ALIGN.VCENTER:
             pos_off = (pos_off[0], pos_off[1] +
                        self.size[1] // 2 - text.h // 2)
-        if self.text_align & TEXT_ALIGN.RIGHT:
+        if self.text_align & ALIGN.RIGHT:
             pos_off = (pos_off[0] + self.size[0] - text.w, pos_off[1])
-        if self.text_align & TEXT_ALIGN.BOTTOM:
+        if self.text_align & ALIGN.BOTTOM:
             pos_off = (pos_off[0], pos_off[1] + self.size[1] - text.h)
-            pass
         sprite.position = pos_off
         return [sprite]
 
 
 class UIFactory(abstarct_classes.AbstarctUIFactory):
+
+    def __init__(self, sdl_window):
+        self.sdl_window = sdl_window
 
     def Panel(self, pos, size, nodes=None, **kwargs):
         """kwargs = {
@@ -196,7 +218,7 @@ class SimpleUI:
         self.sdl_window = sdl2.ext.Window(win_name, win_size)
         self.sdl_window.show()
 
-        start_ui_node = ui_three_configure(UIFactory())
+        start_ui_node = ui_three_configure(UIFactory(self.sdl_window))
 
         self.render = Render(self.sdl_window, start_ui_node, font_path)
 

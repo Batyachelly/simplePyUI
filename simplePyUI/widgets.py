@@ -1,6 +1,6 @@
 import enum
 
-from .main import UINode, UIPanel, UIText, Render, TEXT_ALIGN
+from .main import UINode, UIPanel, UIText, Render, ALIGN
 from .abstarct_classes import AbstarctUIFactory
 
 
@@ -28,7 +28,7 @@ class UIWidgetsFactory:
         mouse_up = callable
         mouse_down = callable
         status = STATE.NONE
-        text_align = TEXT_ALIGN.VCENTER | TEXT_ALIGN.HCENTER
+        text_align = ALIGN.VCENTER | ALIGN.HCENTER
 
         def __init__(self, pos, size, nodes,  **kwargs):
             super().__init__(pos, size, nodes, **kwargs)
