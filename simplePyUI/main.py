@@ -124,6 +124,7 @@ class UINode(metaclass=abc.ABCMeta):
 
 class UIPanel(UINode):
     """kwargs = {
+        "id": str()
         "color": (r, g, b, a)
     }"""
     color = tuple()
@@ -138,6 +139,7 @@ class UIPanel(UINode):
 
 class UIText(UINode):
     """kwargs = {
+        "id": str()
         "text" : str()
         "color": (r, g, b, a)
         "text_align": TEXT_ALIGN
@@ -171,12 +173,14 @@ class UIFactory(abstarct_classes.AbstarctUIFactory):
 
     def Panel(self, pos, size, nodes=None, **kwargs):
         """kwargs = {
+        "s_id": str()
         "color": (r, g, b, a)
         }"""
         return UIPanel(pos, size, nodes, **kwargs)
 
     def Text(self, pos, size, nodes=None, **kwargs):
         """kwargs = {
+        "s_id": str()
         "text" : str()
         "color": (r, g, b, a)
         }"""

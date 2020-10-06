@@ -111,6 +111,7 @@ class UIWidgetsFactory:
 
     def button(self, pos, size, nodes=None, **kwargs):
         """kwargs = {
+            "s_id": str()
             "text" : str()
             "color_text": (r, g, b, a)
             "color": (r, g, b, a)
@@ -122,6 +123,7 @@ class UIWidgetsFactory:
 
     def elements_list(self, pos, size, nodes=None, **kwargs):
         """kwargs = {
+            "s_id": str()
             "color": (r, g, b, a)
         }"""
         return self.ElementsList(pos, size, nodes, ui_factory=self.ui_factory, **kwargs)
