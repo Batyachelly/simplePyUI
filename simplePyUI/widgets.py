@@ -27,6 +27,7 @@ class UIWidgetsFactory:
         click_event = callable
         mouse_up = callable
         mouse_down = callable
+        mouse_click = callable
         status = STATE.NONE
         text_align = ALIGN.VCENTER | ALIGN.HCENTER
 
@@ -41,15 +42,19 @@ class UIWidgetsFactory:
             def mouse_down():
                 self.status = self.status | STATE.PRESS
                 panel.color = self.color_press
-                self.click_event()
+                # self.click_event()
 
             def mouse_up():
                 self.status = self.status & ~ STATE.PRESS
                 panel.color = self.color_hover
-                # self.click_event()
+
+            def mouse_click():
+                self.click_event()
+
 
             panel.mouse_down = mouse_down
             panel.mouse_up = mouse_up
+            panel.mouse_click = mouse_click
 
             def click():
                 self.click_event()

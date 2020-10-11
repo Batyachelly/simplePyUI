@@ -1,12 +1,15 @@
 import abc
 import ctypes
 import enum
+import time
 
 import sdl2
 import sdl2.ext
 import sdl2.sdlttf
 
 from . import abstarct_classes
+
+TIME_TO_CLICK = 0.2
 
 
 class ALIGN(enum.IntEnum):
@@ -30,18 +33,30 @@ class Render:
             sdl_window)
         self.font_manager = sdl2.ext.FontManager(font_path)
 
+        self.click_timer = float()
+        self.selected_node = None
+        self.last_mouse_pos = None
+
     def draw(self):
         self.sprites_to_render = list()
         self.start_ui_node.get_sprites(self, (0, 0))
         self.sprite_renderer.render(self.sprites_to_render)
 
     def mouse_down(self, pos_click):
-        self.start_ui_node.handle_mouse_event(pos_click, (0, 0), "mouse_down")
+        self.click_timer = time.time()
+        self.last_mouse_pos = pos_click
+        self.selected_node = self.start_ui_node.handle_mouse_event(
+            pos_click, (0, 0), "mouse_down")
 
     def mouse_up(self, pos_click):
+        self.selected_node = None
+        if (time.time() - self.click_timer < TIME_TO_CLICK):
+            self.start_ui_node.handle_mouse_event(
+                pos_click, (0, 0), "mouse_click")
+        self.click_timer = float()
         self.start_ui_node.handle_mouse_event(pos_click, (0, 0), "mouse_up")
 
-    def hover(self, pos_mouse):
+    def mouse_hover(self, pos_mouse):
         nodes_with = list()
         self.start_ui_node.get_nodes_with(nodes_with, "hover")
         hovered_node = self.start_ui_node.get_hovered_node(pos_mouse, (0, 0))
@@ -51,6 +66,10 @@ class Render:
         for node in nodes_with:
             node.hover[1]()
 
+    def mouse_drag(self, pos_mouse):
+            pos_mouse_dff = (pos_mouse[0] - self.last_mouse_pos[0] , pos_mouse[1] - self.last_mouse_pos[1])
+            self.last_mouse_pos = pos_mouse
+            getattr(self.selected_node, "mouse_drag", lambda x,_y: x)(pos_mouse, pos_mouse_dff)
 
 class UINode(metaclass=abc.ABCMeta):
 
@@ -62,7 +81,7 @@ class UINode(metaclass=abc.ABCMeta):
         self.size = size
 
         self.nodes = nodes
-        if not nodes:
+        if nodes == None:
             self.nodes = list()
 
         for key, val in kwargs.items():
@@ -99,24 +118,26 @@ class UINode(metaclass=abc.ABCMeta):
     def create_sprites(self, render: Render, pos):
         pass
 
-    def handle_mouse_event(self, pos_mouse, pos_off, event):
+    def handle_mouse_event(self, pos_mouse, pos_off, event, *args):
         if not self.clickable:
-            return False
+            return None
 
         pos_off = self.calc_pos(pos_off)
         for node in reversed(self.nodes):
             next_pos_off = self.calc_next_node_pos(node, pos_off)
-            if node.handle_mouse_event(pos_mouse, next_pos_off, event):
-                return True
+            node = node.handle_mouse_event(pos_mouse, next_pos_off, event, *args)
+            if node:
+                return node
 
         if pos_off[0] < pos_mouse[0] and \
                 pos_mouse[0] < pos_off[0] + self.size[0] and \
                 pos_off[1] < pos_mouse[1] and \
                 pos_mouse[1] < pos_off[1] + self.size[1]:
             if hasattr(self, event):
-                getattr(self, event)()
-            return True
-        return False
+                getattr(self, event)(*args)
+
+            return self
+        return None
 
     def get_nodes_with(self, nodes_acc: list, event):
         if hasattr(self, event):
@@ -255,6 +276,8 @@ class SimpleUI:
                     x, y = ctypes.c_int(0), ctypes.c_int(0)
                     sdl2.mouse.SDL_GetMouseState(
                         ctypes.byref(x), ctypes.byref(y))
-                    self.render.hover((x.value, y.value))
+                    self.render.mouse_hover((x.value, y.value))
+                    if (time.time() - self.render.click_timer > TIME_TO_CLICK and self.render.selected_node):
+                        self.render.mouse_drag((x.value, y.value))
                     break
             self.sdl_window.refresh()
