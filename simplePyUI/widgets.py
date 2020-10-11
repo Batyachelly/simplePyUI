@@ -76,7 +76,7 @@ class UIWidgetsFactory:
 
         ui_factory = AbstarctUIFactory
         color = tuple()
-        force_element_height = int()
+        force_element_height = int() # TODO Что-то с этим параметром сделать
 
         def __init__(self, pos, size, nodes,  **kwargs):
             super().__init__(pos, size, nodes, **kwargs)
@@ -96,9 +96,71 @@ class UIWidgetsFactory:
                 self.nodes.append(node)
             else:
                 self.nodes.insert(pos+1, node)
+            self.update_list()
 
         def rem_elem(self, pos):
             del self.nodes[pos + 1]
+            self.update_list()
+
+        def get_elems(self):
+            return self.nodes[1:]
+
+        def create_sprites(self, render: Render, pos_off=(0, 0)):
+            sprites = list()
+            for node in self.nodes:
+                sprites.extend(node.create_sprites(render, pos_off))
+            return sprites
+
+    class ElementsMatrixAxis(UINode):
+
+        ui_factory = AbstarctUIFactory
+
+        def add_elem(self, node, pos=-1):
+            if pos == -1:
+                self.nodes.append(node)
+            else:
+                self.nodes.insert(pos, node)
+
+        def rem_elem(self, pos):
+            del self.nodes[pos]
+
+        def get_elems(self):
+            return self.nodes
+
+        def create_sprites(self, render: Render, pos_off=(0, 0)):
+            sprites = list()
+            for node in self.nodes:
+                sprites.extend(node.create_sprites(render, pos_off))
+            return sprites
+
+    class ElementsMatrix(UINode):
+
+        ui_factory = AbstarctUIFactory
+        color = tuple()
+        element_size = (int(), int())
+
+        def __init__(self, pos, size, nodes,  **kwargs):
+            super().__init__(pos, size, nodes, **kwargs)
+            self.update_matrix()
+
+        def update_matrix(self):
+            w, h = self.element_size
+
+            for x, x_axis in enumerate(self.nodes):
+                for y, y_axis in enumerate(x_axis.nodes):
+                    for _z, node in enumerate(y_axis.nodes):
+                        node.pos = (x * w, y * h)
+
+        def add_elem(self, node, pos=-1):
+            if pos == -1:
+                self.nodes.append(node)
+            else:
+                self.nodes.insert(pos+1, node)
+            self.update_matrix()
+
+        def rem_elem(self, pos):
+            del self.nodes[pos + 1]
+            self.update_matrix()
 
         def get_elems(self):
             return self.nodes[1:]
@@ -118,6 +180,7 @@ class UIWidgetsFactory:
             "color_hover": (r, g, b, a)
             "color_press": (r, g, b, a)
             "click_event" : fun()
+            "align": ALIGN
         }"""
         return self.Button(pos, size, None, ui_factory=self.ui_factory, **kwargs)
 
@@ -125,5 +188,22 @@ class UIWidgetsFactory:
         """kwargs = {
             "s_id": str()
             "color": (r, g, b, a)
+            "align": ALIGN
         }"""
         return self.ElementsList(pos, size, nodes, ui_factory=self.ui_factory, **kwargs)
+
+    def elements_matrix(self, pos, nodes=None, **kwargs):
+        """kwargs = {
+            "s_id": str()
+            "color": (r, g, b, a)
+            "align": ALIGN
+            "element_size" : (int(), int())
+        }"""
+        return self.ElementsMatrix(pos, (0, 0), nodes, ui_factory=self.ui_factory, **kwargs)
+
+    def elements_matrix_axis(self, pos, nodes=None, **kwargs):
+        """kwargs = {
+            "s_id": str()
+            "element_size" : (int(), int())
+        }"""
+        return self.ElementsMatrixAxis(pos, (0, 0), nodes, ui_factory=self.ui_factory, **kwargs)

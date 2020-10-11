@@ -80,9 +80,11 @@ class UINode(metaclass=abc.ABCMeta):
             pos_off = (pos_off[0], pos_off[1] +
                        self.size[1] // 2 - next_node.size[1] // 2)
         if next_node.align & ALIGN.RIGHT:
-            pos_off = (pos_off[0] + self.size[0] - next_node.size[0], pos_off[1])
+            pos_off = (pos_off[0] + self.size[0] -
+                       next_node.size[0], pos_off[1])
         if next_node.align & ALIGN.BOTTOM:
-            pos_off = (pos_off[0], pos_off[1] + self.size[1] - next_node.size[1])
+            pos_off = (pos_off[0], pos_off[1] +
+                       self.size[1] - next_node.size[1])
 
         return pos_off
 
@@ -90,8 +92,8 @@ class UINode(metaclass=abc.ABCMeta):
         pos_off = self.calc_pos(pos_off)
         render.sprites_to_render.extend(self.create_sprites(render, pos_off))
         for node in self.nodes:
-            pos_off = self.calc_next_node_pos(node, pos_off)
-            node.get_sprites(render, pos_off)
+            next_pos_off = self.calc_next_node_pos(node, pos_off)
+            node.get_sprites(render, next_pos_off)
 
     @abc.abstractmethod
     def create_sprites(self, render: Render, pos):
@@ -103,8 +105,8 @@ class UINode(metaclass=abc.ABCMeta):
 
         pos_off = self.calc_pos(pos_off)
         for node in reversed(self.nodes):
-            pos_off = self.calc_next_node_pos(node, pos_off)
-            if node.handle_mouse_event(pos_mouse, pos_off, event):
+            next_pos_off = self.calc_next_node_pos(node, pos_off)
+            if node.handle_mouse_event(pos_mouse, next_pos_off, event):
                 return True
 
         if pos_off[0] < pos_mouse[0] and \
@@ -129,8 +131,8 @@ class UINode(metaclass=abc.ABCMeta):
 
         pos_off = self.calc_pos(pos_off)
         for node in reversed(self.nodes):
-            pos_off = self.calc_next_node_pos(node, pos_off)
-            hovered_node = node.get_hovered_node(pos_mouse, pos_off)
+            next_pos_off = self.calc_next_node_pos(node, pos_off)
+            hovered_node = node.get_hovered_node(pos_mouse, next_pos_off)
             if hovered_node:
                 return hovered_node
 
@@ -146,6 +148,7 @@ class UIPanel(UINode):
     """kwargs = {
         "id": str()
         "color": (r, g, b, a)
+        "align": ALIGN
     }"""
     color = tuple()
 
@@ -162,6 +165,7 @@ class UIText(UINode):
         "id": str()
         "text" : str()
         "color": (r, g, b, a)
+        "align": ALIGN
         "text_align": ALIGN
     }"""
     text = str()
@@ -197,6 +201,7 @@ class UIFactory(abstarct_classes.AbstarctUIFactory):
         """kwargs = {
         "s_id": str()
         "color": (r, g, b, a)
+        "align": ALIGN
         }"""
         return UIPanel(pos, size, nodes, **kwargs)
 
@@ -205,6 +210,7 @@ class UIFactory(abstarct_classes.AbstarctUIFactory):
         "s_id": str()
         "text" : str()
         "color": (r, g, b, a)
+        "align": ALIGN
         }"""
         return UIText(pos, size, nodes, **kwargs)
 
