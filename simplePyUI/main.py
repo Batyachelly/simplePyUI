@@ -252,9 +252,6 @@ class SimpleUI:
         self.running = True
 
     def run_loop(self):
-        # Mouse ccords variables
-        x, y = ctypes.c_int(0), ctypes.c_int(0)
-
         while self.running:
             self.render.draw()
             events = sdl2.ext.get_events()
@@ -263,21 +260,15 @@ class SimpleUI:
                     self.running = False
                     break
                 if event.type == sdl2.SDL_MOUSEBUTTONDOWN:
-                    sdl2.mouse.SDL_GetMouseState(
-                        ctypes.byref(x), ctypes.byref(y))
-                    self.render.mouse_down((x.value, y.value))
+                    self.render.mouse_down((event.button.x, event.button.y))
                     break
                 if event.type == sdl2.SDL_MOUSEBUTTONUP:
-                    sdl2.mouse.SDL_GetMouseState(
-                        ctypes.byref(x), ctypes.byref(y))
-                    self.render.mouse_up((x.value, y.value))
+                    self.render.mouse_up((event.button.x, event.button.y))
                     break
                 if event.type == sdl2.SDL_MOUSEMOTION:
-                    x, y = ctypes.c_int(0), ctypes.c_int(0)
-                    sdl2.mouse.SDL_GetMouseState(
-                        ctypes.byref(x), ctypes.byref(y))
-                    self.render.mouse_hover((x.value, y.value))
+                    x, y = event.button.x, event.button.y
+                    self.render.mouse_hover((x, y))
                     if (time.time() - self.render.click_timer > TIME_TO_CLICK and self.render.selected_node):
-                        self.render.mouse_drag((x.value, y.value))
+                        self.render.mouse_drag((x, y))
                     break
             self.sdl_window.refresh()
