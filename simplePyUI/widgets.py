@@ -30,6 +30,7 @@ class UIWidgetsFactory:
         mouse_click = callable
         status = STATE.NONE
         text_align = ALIGN.VCENTER | ALIGN.HCENTER
+        text_size = 16
 
         def __init__(self, pos, size, nodes,  **kwargs):
             super().__init__(pos, size, nodes, **kwargs)
@@ -37,7 +38,7 @@ class UIWidgetsFactory:
             panel: UIPanel = self.ui_factory.Panel(
                 (0, 0), self.size, [], color=self.color)
             text: UIText = self.ui_factory.Text((0, 0), self.size, [
-            ], color=self.color_text, text=self.text, text_align=self.text_align)
+            ], color=self.color_text, text=self.text, text_align=self.text_align, text_size=self.text_size)
 
             def mouse_down():
                 self.status = self.status | STATE.PRESS
@@ -186,6 +187,7 @@ class UIWidgetsFactory:
             "color_press": (r, g, b, a)
             "click_event" : fun()
             "align": ALIGN
+            "text_size" : int()
         }"""
         return self.Button(pos, size, None, ui_factory=self.ui_factory, **kwargs)
 

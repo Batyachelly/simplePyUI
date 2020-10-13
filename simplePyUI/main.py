@@ -188,15 +188,17 @@ class UIText(UINode):
         "color": (r, g, b, a)
         "align": ALIGN
         "text_align": ALIGN
+        "text_size" : int()
     }"""
     text = str()
     color = tuple()
     text_align = ALIGN.VCENTER | ALIGN.HCENTER
+    text_size = 16
 
     clickable = False
 
     def create_sprites(self, render: Render, pos_off=(0, 0)):
-        text = render.font_manager.render(self.text, color=self.color)
+        text = render.font_manager.render(self.text, color=self.color, size=self.text_size)
         sprite = render.sprite_factory.from_surface(text)
 
         if self.text_align & ALIGN.HCENTER:
