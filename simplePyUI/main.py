@@ -285,7 +285,8 @@ class SimpleUI:
     def run_loop(self):
         t = threading.Thread(target=self._ui_loop)
         t.start()
-        time.sleep(1)
+        while not self.render:
+            time.sleep(0.01)
 
     def _ui_loop(self):
         sdl2.ext.init()
