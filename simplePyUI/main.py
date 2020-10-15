@@ -3,6 +3,8 @@ import ctypes
 import enum
 import time
 
+import threading
+
 import sdl2
 import sdl2.ext
 import sdl2.sdlttf
@@ -70,6 +72,20 @@ class Render:
             pos_mouse_dff = (pos_mouse[0] - self.last_mouse_pos[0] , pos_mouse[1] - self.last_mouse_pos[1])
             self.last_mouse_pos = pos_mouse
             getattr(self.selected_node, "mouse_drag", lambda x,_y: x)(pos_mouse, pos_mouse_dff)
+
+    def _all_nodes_thrunking(self):
+        res = list()
+        res.extend(self.start_ui_node.nodes)
+        for node in res:
+            yield node
+            res.extend(node.nodes)
+        return res
+
+    def get_node_by_name(self, name):
+        for node in self._all_nodes_thrunking():
+            s_id = getattr(node, "s_id", None)
+            if s_id and s_id == name:
+                return node
 
 class UINode(metaclass=abc.ABCMeta):
 
@@ -240,20 +256,36 @@ class UIFactory(abstarct_classes.AbstarctUIFactory):
 
 class SimpleUI:
 
+    win_name = str()
+    win_size = (0,0)
+    ui_three_configure = callable
+    font_path = str()
+    running = False
+    render = None
+
     def __init__(self, win_name, win_size, ui_three_configure, font_path):
-        sdl2.ext.init()
-        sdl2.sdlttf.TTF_Init()
-
-        self.sdl_window = sdl2.ext.Window(win_name, win_size)
-        self.sdl_window.show()
-
-        start_ui_node = ui_three_configure(UIFactory(self.sdl_window))
-
-        self.render = Render(self.sdl_window, start_ui_node, font_path)
-
+        self.win_name = win_name
+        self.win_size = win_size
+        self.ui_three_configure = ui_three_configure
+        self.font_path = font_path
         self.running = True
 
     def run_loop(self):
+        t = threading.Thread(target=self._ui_loop)
+        t.start()
+        time.sleep(1)
+
+    def _ui_loop(self):
+        sdl2.ext.init()
+        sdl2.sdlttf.TTF_Init()
+
+        self.sdl_window = sdl2.ext.Window(self.win_name, self.win_size)
+        self.sdl_window.show()
+
+        self.start_ui_node = self.ui_three_configure(UIFactory(self.sdl_window))
+
+        self.render = Render(self.sdl_window, self.start_ui_node, self.font_path)
+
         while self.running:
             self.render.draw()
             events = sdl2.ext.get_events()
@@ -274,3 +306,6 @@ class SimpleUI:
                         self.render.mouse_drag((x, y))
                     break
             self.sdl_window.refresh()
+
+    def get_node_by_name(self, name):
+        return self.render.get_node_by_name(name)
