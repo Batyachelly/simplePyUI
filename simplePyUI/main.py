@@ -87,6 +87,18 @@ class Render:
             if s_id and s_id == name:
                 return node
 
+    def remove_node_by_name(self, name):
+        res = list()
+        res.extend(self.start_ui_node.nodes)
+        for node in res:
+            for child_node in node.nodes:
+                s_id = getattr(child_node, "s_id", None)
+                if s_id and s_id == name:
+                    node.nodes.remove(child_node)
+                    return
+            res.extend(node.nodes)
+
+
 class UINode(metaclass=abc.ABCMeta):
 
     clickable = True  # Перехватывать события мыши
@@ -309,3 +321,7 @@ class SimpleUI:
 
     def get_node_by_name(self, name):
         return self.render.get_node_by_name(name)
+
+    def remove_node_by_name(self, name):
+        # TODO Сделай возвращаемые коды статуса выполнения
+        self.render.remove_node_by_name(name)
