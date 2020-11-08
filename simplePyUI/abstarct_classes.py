@@ -9,6 +9,7 @@ class AbstarctUIFactory(metaclass=abc.ABCMeta):
     def Panel(self, pos, size, nodes=None, **kwargs):
         """kwargs = {
         "color": (r, g, b, a)
+        "sprite"
         }"""
         pass
 

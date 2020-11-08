@@ -11,7 +11,7 @@ import sdl2.sdlttf
 
 from . import abstarct_classes
 
-TIME_TO_CLICK = 0.2
+TIME_TO_CLICK = 0.9
 
 
 class ALIGN(enum.IntEnum):
@@ -198,11 +198,14 @@ class UIPanel(UINode):
         "id": str()
         "color": (r, g, b, a)
         "align": ALIGN
+        "sprite"
     }"""
     color = tuple()
+    sprite = None
 
     def create_sprites(self, render: Render, pos_off=(0, 0)):
-
+        if self.sprite:
+            return [self.sprite]
         sprite = render.sprite_factory.create_software_sprite(self.size)
         sdl2.ext.fill(sprite, self.color)
         sprite.position = pos_off
@@ -283,7 +286,7 @@ class SimpleUI:
         self.running = True
 
     def run_loop(self):
-        t = threading.Thread(target=self._ui_loop)
+        t = threading.Thread(target=self._ui_loop, name="ui_loop")
         t.start()
         while not self.render:
             time.sleep(0.01)

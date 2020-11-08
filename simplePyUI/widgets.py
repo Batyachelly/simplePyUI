@@ -78,6 +78,65 @@ class UIWidgetsFactory:
                 sprites.extend(node.create_sprites(render, pos_off))
             return sprites
 
+    class Label(UINode):
+
+        ui_factory = AbstarctUIFactory
+        text = str()
+        color_text = tuple()
+        color = tuple()
+        text_align = ALIGN.VCENTER | ALIGN.HCENTER
+        text_size = 16
+
+        def __init__(self, pos, size, nodes,  **kwargs):
+            super().__init__(pos, size, nodes, **kwargs)
+
+            panel: UIPanel = self.ui_factory.Panel(
+                (0, 0), self.size, [], color=self.color)
+            text: UIText = self.ui_factory.Text((0, 0), self.size, [
+            ], color=self.color_text, text=self.text, text_align=self.text_align, text_size=self.text_size)
+
+            self.nodes = [panel, text]
+
+        def set_text(self, text):
+            self.nodes[1].text = text
+
+        def create_sprites(self, render: Render, pos_off=(0, 0)):
+            sprites = list()
+            for node in self.nodes:
+                sprites.extend(node.create_sprites(render, pos_off))
+            return sprites
+
+
+    class DirectSprite(UINode):
+
+        ui_factory = AbstarctUIFactory
+        sprite = None
+
+        def __init__(self, pos, size, nodes, **kwargs):
+            super().__init__(pos, size, nodes, **kwargs)
+
+            if self.sprite:
+                panel: UIPanel = self.ui_factory.Panel(
+                    (0, 0), self.size, [], color=(0,0,0,0), sprite=self.sprite)
+                self.nodes = [panel]
+
+        def set_sprite(self, sprite):
+            self.sprite = sprite
+            panel: UIPanel = self.ui_factory.Panel(
+                (0, 0), self.size, [], color=(0,0,0,0), sprite=self.sprite)
+            self.nodes = [panel]
+
+        def update_sprite(self, sprite):
+            self.sprite = sprite
+            self.nodes[0].sprite = sprite
+
+        def create_sprites(self, render: Render, pos_off=(0, 0)):
+            sprites = list()
+            for node in self.nodes:
+                sprites.extend(node.create_sprites(render, pos_off))
+            return sprites
+
+
     class ElementsList(UINode):
 
         ui_factory = AbstarctUIFactory
@@ -190,6 +249,12 @@ class UIWidgetsFactory:
             "text_size" : int()
         }"""
         return self.Button(pos, size, None, ui_factory=self.ui_factory, **kwargs)
+
+    def label(self, pos, size, sprite, **kwargs):
+        return self.Label(pos, size, None, ui_factory=self.ui_factory, **kwargs)
+
+    def direct_sprite(self, pos, size, sprite, **kwargs):
+        return self.DirectSprite(pos, size, None, ui_factory=self.ui_factory, sprite=sprite,**kwargs)
 
     def elements_list(self, pos, size, nodes=None, **kwargs):
         """kwargs = {
